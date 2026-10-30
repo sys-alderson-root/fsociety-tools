@@ -68,34 +68,73 @@ def crack_hash():
     print("\n[?] Entrez un hash (MD5, SHA-1 ou SHA-256) pour tenter de le casser :")
     target_hash = input("> ").strip().lower()
     
-    # Wordlist intégrée (les mots de passe les plus courants)
-    wordlist = [
-        "123456", "password", "admin", "root", "hello", "friend", 
-        "fsociety", "elliot", "mrrobot", "azerty", "motdepasse", 
-        "123456789", "qwerty", "abc123", "cyber"
-    ]
+    print("\n[?] Quelle wordlist veux-tu utiliser ?")
+    print("    [ 1 ] Wordlist interne (rapide, 15 mots de passe courants)")
+    print("    [ 2 ] Wordlist externe (fichier .txt, ex: rockyou.txt)")
+    choix_wl = input("\n[root@fsociety:~]# ")
     
-    print(f"\n[*] Injection de la wordlist ({len(wordlist)} mots) dans le hachoir...")
-    print("[*] Comparaison des empreintes en cours...")
+    mots_a_tester = []
+    source_nom = ""
     
-    found = False
-    for mdp in wordlist:
-        if hashlib.md5(mdp.encode()).hexdigest() == target_hash:
-            print(f"\n[+] MATCH TROUVÉ (MD5) : Le mot de passe est '{mdp}'")
-            found = True
-            break
-        elif hashlib.sha1(mdp.encode()).hexdigest() == target_hash:
-            print(f"\n[+] MATCH TROUVÉ (SHA-1) : Le mot de passe est '{mdp}'")
-            found = True
-            break
-        elif hashlib.sha256(mdp.encode()).hexdigest() == target_hash:
-            print(f"\n[+] MATCH TROUVÉ (SHA-256) : Le mot de passe est '{mdp}'")
-            found = True
-            break
-            
-    if not found:
-        print("\n[-] ÉCHEC : Mot de passe introuvable dans cette wordlist éducative.")
+    if choix_wl == "1":
+        mots_a_tester = [
+            "123456", "password", "admin", "root", "hello", "friend", 
+            "fsociety", "elliot", "mrrobot", "azerty", "motdepasse", 
+            "123456789", "qwerty", "abc123", "cyber"
+        ]
+        source_nom = "Wordlist interne"
         
+    elif choix_wl == "2":
+        print("\n[?] Entrez le chemin de la wordlist (ex: rockyou.txt) :")
+        wordlist_path = input("> ").strip()
+        source_nom = f"Fichier externe ({wordlist_path})"
+        try:
+            with open(wordlist_path, "r", encoding="latin-1", errors="ignore") as file:
+                mots_a_tester = [line.strip() for line in file if line.strip()]
+        except FileNotFoundError:
+            print(f"\n[-] ERREUR : Le fichier '{wordlist_path}' est introuvable.")
+            input("\n[>] Appuie sur Entrée pour retourner au terminal...")
+            return
+    else:
+        print("\n[-] Choix invalide.")
+        input("\n[>] Appuie sur Entrée pour retourner au terminal...")
+        return
+
+    print(f"\n[*] Injection de la {source_nom} dans le hachoir...")
+    print(f"[*] {len(mots_a_tester)} mots à tester.")
+    print("[*] Attaque en cours... (Appuie sur Ctrl+C pour arrêter)")
+    
+    count = 0
+    for mdp in mots_a_tester:
+        count += 1
+        
+        if count % 100000 == 0:
+            print(f"[*] {count} mots testés...", end="\r")
+            
+        try:
+            mdp_bytes = mdp.encode('utf-8', errors='ignore')
+            
+            if hashlib.md5(mdp_bytes).hexdigest() == target_hash:
+                print(f"\n\n[+] MATCH TROUVÉ (MD5) : Le mot de passe est '{mdp}'")
+                print(f"[+] Trouvé après {count} tentatives.")
+                input("\n[>] Appuie sur Entrée pour retourner au terminal...")
+                return
+            elif hashlib.sha1(mdp_bytes).hexdigest() == target_hash:
+                print(f"\n\n[+] MATCH TROUVÉ (SHA-1) : Le mot de passe est '{mdp}'")
+                print(f"[+] Trouvé après {count} tentatives.")
+                input("\n[>] Appuie sur Entrée pour retourner au terminal...")
+                return
+            elif hashlib.sha256(mdp_bytes).hexdigest() == target_hash:
+                print(f"\n\n[+] MATCH TROUVÉ (SHA-256) : Le mot de passe est '{mdp}'")
+                print(f"[+] Trouvé après {count} tentatives.")
+                input("\n[>] Appuie sur Entrée pour retourner au terminal...")
+                return
+        except KeyboardInterrupt:
+            print("\n\n[-] Attaque interrompue par l'utilisateur.")
+            input("\n[>] Appuie sur Entrée pour retourner au terminal...")
+            return
+            
+    print(f"\n\n[-] ÉCHEC : Mot de passe introuvable dans les {count} mots de la liste.")
     input("\n[>] Appuie sur Entrée pour retourner au terminal...")
 
 def main():
