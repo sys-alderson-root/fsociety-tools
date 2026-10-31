@@ -15,3 +15,8 @@ It must never be used to attempt to access systems, accounts, or data without ex
 No external libraries are required (Standard Python 3).
 ```bash
 python fsociety_hash_tool.py
+
+---
+## 👨‍💻 Auteur
+Créé par **sys-alderson-root** 
+"Control is an illusion."
